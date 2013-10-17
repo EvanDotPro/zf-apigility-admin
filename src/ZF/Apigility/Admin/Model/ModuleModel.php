@@ -192,18 +192,35 @@ EOD;
         $objModule = new ReflectionObject($modules[$module]);
         $content   = file_get_contents($objModule->getFileName());
 
+        // No extends, no implements
         $replacement = preg_replace(
-            '/' . "\n" . 'class\s([a-z_\x7f-\xff][a-z0-9_\x7f-\xff]*)\s{/i',
-            "use ZF\Apigility\ApigilityModuleInterface;\n\nclass $1 implements ApigilityModuleInterface\n{",
+            '/\nclass(\s+[a-z_\x7f-\xff][a-z0-9_\x7f-\xff]*)(\s*){/si',
+            "use ZF\Apigility\ApigilityModuleInterface;\n\nclass$1 implements ApigilityModuleInterface$2{",
             $content
         );
 
+        // Implements something
         if ($replacement === $content) {
             $replacement = preg_replace(
-                '/implements\s/',
-                'implements ZF\Apigility\ApigilityModuleInterface,',
+                '/\nclass(\s+[a-z_\x7f-\xff][a-z0-9_\x7f-\xff]*\s+.*)implements(\s+.*)(\s*){/i',
+                "use ZF\Apigility\ApigilityModuleInterface;\n\nclass$1implements$2, ApigilityModuleInterface$3{",
                 $content
             );
+        }
+
+        // Doesn't implement anything, but extends something
+        if ($replacement === $content) {
+            $replacement = preg_replace(
+                '/' . "\n" . 'class\s([a-z_\x7f-\xff][a-z0-9_\x7f-\xff]*)\s([^\s]+)\s?{/i',
+                "use ZF\Apigility\ApigilityModuleInterface;\n\nclass $1 $2 implements ApigilityModuleInterface\n{",
+                $content
+            );
+        }
+
+        // They've done something a little weird (comments in the class
+        // declaration area?) so we couldn't match it.
+        if ($replacement === $content) {
+            return false;
         }
 
         copy($objModule->getFileName(), $objModule->getFileName() . '.old');
