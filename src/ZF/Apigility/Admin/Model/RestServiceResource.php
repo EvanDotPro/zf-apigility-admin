@@ -84,6 +84,10 @@ class RestServiceResource extends AbstractResourceListener
             $data = (array) $data;
         }
 
+        if (empty($data['resource_name'])) {
+            throw new CreationException('Unable to create resource; resource name not provided.');
+        }
+
         $type = RestServiceModelFactory::TYPE_DEFAULT;
         if (isset($data['table_name'])) {
             $creationData = new DbConnectedRestServiceEntity();
