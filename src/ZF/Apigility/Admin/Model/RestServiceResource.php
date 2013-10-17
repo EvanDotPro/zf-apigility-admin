@@ -85,7 +85,7 @@ class RestServiceResource extends AbstractResourceListener
         }
 
         if (empty($data['resource_name'])) {
-            throw new CreationException('Unable to create resource; resource name not provided.');
+            throw new CreationException('Unable to create REST service; resource name not provided.');
         }
 
         $type = RestServiceModelFactory::TYPE_DEFAULT;
